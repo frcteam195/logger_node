@@ -31,14 +31,25 @@ void start_ros_bag()
 	system("rosbag record -a -o /mnt/working/ &");
 }
 
+static ros::Time time_in_disabled(0);
 void robot_status_callback (const rio_control_node::Robot_Status &msg)
 {
 	(void) msg;
 	mRobotState = (RobotState)msg.robot_state;
 	if (mRobotState == RobotState::DISABLED && mPrevRobotState != RobotState::DISABLED)
 	{
+		time_in_disabled = ros::Time::now();
+	}
+	else if (mRobotState != RobotState::DISABLED)
+	{
+		time_in_disabled = ros::Time(0);
+	}
+
+	if (time_in_disabled != ros::Time(0) && (ros::Time::now() - time_in_disabled) > ros::Duration(10))
+	{
 		stop_ros_bag();
 		start_ros_bag();
+		time_in_disabled = ros::Time(0);
 	}
 	mPrevRobotState = mRobotState;
 }
