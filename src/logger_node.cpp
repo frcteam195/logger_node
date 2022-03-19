@@ -4,8 +4,44 @@
 #include <thread>
 #include <string>
 #include <mutex>
+#include <atomic>
+
+#include "rio_control_node/Robot_Status.h"
 
 ros::NodeHandle* node;
+
+enum RobotState : int
+{
+    DISABLED = 0,
+    TELEOP = 1,
+    AUTONOMOUS = 2,
+    TEST = 3,
+};
+
+static RobotState mPrevRobotState = RobotState::DISABLED;
+static RobotState mRobotState = RobotState::DISABLED;
+
+void stop_ros_bag()
+{
+	system("pkill -2 rosbag");
+}
+
+void start_ros_bag()
+{
+	system("rosbag record -a -o /mnt/working/ &");
+}
+
+void robot_status_callback (const rio_control_node::Robot_Status &msg)
+{
+	(void) msg;
+	mRobotState = (RobotState)msg.robot_state;
+	if (mRobotState == RobotState::DISABLED && mPrevRobotState != RobotState::DISABLED)
+	{
+		stop_ros_bag();
+		start_ros_bag();
+	}
+	mPrevRobotState = mRobotState;
+}
 
 int main(int argc, char **argv)
 {
@@ -24,6 +60,8 @@ int main(int argc, char **argv)
 	ros::NodeHandle n;
 
 	node = &n;
+
+	static ros::Subscriber robot_status_subscriber = node->subscribe("/RobotStatus", 1, robot_status_callback);
 
 	ros::spin();
 	return 0;
