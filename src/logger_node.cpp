@@ -28,7 +28,9 @@ void stop_ros_bag()
 
 void start_ros_bag()
 {
-	system("rosbag record -a -o /mnt/working/ &");
+	system("rosbag record -e \"(.*)Diagnostic(.*)\" -o /mnt/working/ &");
+
+	// system("rosbag record -a -o /mnt/working/ &");
 }
 
 static ros::Time time_in_disabled(0);
@@ -73,6 +75,8 @@ int main(int argc, char **argv)
 	node = &n;
 
 	static ros::Subscriber robot_status_subscriber = node->subscribe("/RobotStatus", 1, robot_status_callback);
+
+	start_ros_bag();	//Initial start
 
 	ros::spin();
 	return 0;
