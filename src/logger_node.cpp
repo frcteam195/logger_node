@@ -33,6 +33,11 @@ void start_ros_bag()
 	// system("rosbag record -a -o /mnt/working/ &");
 }
 
+void sync_fs()
+{
+	system("sudo sync");
+}
+
 static ros::Time time_in_disabled(0);
 void robot_status_callback (const rio_control_node::Robot_Status &msg)
 {
@@ -50,6 +55,7 @@ void robot_status_callback (const rio_control_node::Robot_Status &msg)
 	if (time_in_disabled != ros::Time(0) && (ros::Time::now() - time_in_disabled) > ros::Duration(10))
 	{
 		stop_ros_bag();
+		sync_fs();
 		start_ros_bag();
 		time_in_disabled = ros::Time(0);
 	}
