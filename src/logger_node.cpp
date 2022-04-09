@@ -85,5 +85,7 @@ int main(int argc, char **argv)
 	start_ros_bag();	//Initial start
 
 	ros::spin();
+	stop_ros_bag();
+	sync_fs();
 	return 0;
 }
