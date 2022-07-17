@@ -5,6 +5,13 @@
 #include <string>
 #include <mutex>
 #include <atomic>
+#include <sys/stat.h>
+
+#include <cstdio>
+#include <iostream>
+#include <memory>
+#include <stdexcept>
+#include <array>
 
 #include "rio_control_node/Robot_Status.h"
 
@@ -21,6 +28,22 @@ enum RobotState : int
 static RobotState mPrevRobotState = RobotState::DISABLED;
 static RobotState mRobotState = RobotState::DISABLED;
 
+std::string exec(const char* cmd)
+{
+	std::array<char, 128> buffer;
+	std::string result;
+	std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+	if (!pipe)
+	{
+		throw std::runtime_error("popen() failed!");
+	}
+	while (fgets(buffer.data(), buffer.size(), pipe.get()))
+	{
+		result += buffer.data();
+	}
+	return result;
+}
+
 void stop_ros_bag()
 {
 	system("pkill -2 rosbag");
@@ -28,7 +51,48 @@ void stop_ros_bag()
 
 void start_ros_bag()
 {
-	system("rosbag record -e \"(.*)Diagnostic(.*)\" -o /mnt/working/ &");
+	const std::string DEFAULT_BAG_NAME = "/mnt/working/robHatesDashes";
+
+	int file_idx = 0;
+	try
+	{
+		std::string cmd_active_bag = exec("ls /mnt/working/*.bag.active | sort -V | tail -n 1 | cut -c 28- | rev | cut -c 12- | rev");
+		std::string cmd_completed_bag = exec("ls /mnt/working/*.bag | sort -V | tail -n 1 | cut -c 28- | rev | cut -c 5- | rev");
+
+		int idx_active = 0;
+		int idx_completed = 0;
+		try {
+			idx_active = std::stoi(cmd_active_bag);
+		}
+		catch (...)
+		{
+			idx_active = 0;
+		}
+
+		try {
+			idx_completed = std::stoi(cmd_completed_bag);
+		}
+		catch (...)
+		{
+			idx_completed = 0;
+		}
+		file_idx = idx_active > idx_completed ? idx_active : idx_completed;
+	}
+	catch (...)
+	{
+		file_idx = 0;
+	}
+
+	// struct stat buffer;
+
+	// int i = 0;
+	// std::string bag_name = DEFAULT_BAG_NAME + std::to_string(i) + ".bag";
+	// while(stat(bag_name.c_str(), &buffer) == 0)
+	// {
+	// 	bag_name = DEFAULT_BAG_NAME + std::to_string(i) + ".bag";
+	// }
+
+	system(("rosbag record -e \"(.*)Diagnostic(.*)\" -O " + (DEFAULT_BAG_NAME + std::to_string(file_idx + 1) + ".bag") + "  &").c_str());
 
 	// system("rosbag record -a -o /mnt/working/ &");
 }
