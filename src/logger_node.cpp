@@ -83,18 +83,7 @@ void start_ros_bag()
 		file_idx = 0;
 	}
 
-	// struct stat buffer;
-
-	// int i = 0;
-	// std::string bag_name = DEFAULT_BAG_NAME + std::to_string(i) + ".bag";
-	// while(stat(bag_name.c_str(), &buffer) == 0)
-	// {
-	// 	bag_name = DEFAULT_BAG_NAME + std::to_string(i) + ".bag";
-	// }
-
 	system(("rosbag record -e \"(.*)Diagnostic(.*)\" -O " + (DEFAULT_BAG_NAME + std::to_string(file_idx + 1) + ".bag") + "  &").c_str());
-
-	// system("rosbag record -a -o /mnt/working/ &");
 }
 
 void sync_fs()
