@@ -98,6 +98,7 @@ void robot_status_callback (const rio_control_node::Robot_Status &msg)
 	mRobotState = (RobotState)msg.robot_state;
 	if (mRobotState == RobotState::DISABLED && mPrevRobotState != RobotState::DISABLED)
 	{
+		start_ros_bag();
 		time_in_disabled = ros::Time::now();
 	}
 	else if (mRobotState != RobotState::DISABLED)
@@ -109,7 +110,6 @@ void robot_status_callback (const rio_control_node::Robot_Status &msg)
 	{
 		stop_ros_bag();
 		sync_fs();
-		start_ros_bag();
 		time_in_disabled = ros::Time(0);
 	}
 	mPrevRobotState = mRobotState;
