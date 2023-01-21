@@ -25,7 +25,6 @@ enum RobotState : int
     TEST = 3,
 };
 
-static RobotState mPrevRobotState = RobotState::DISABLED;
 static RobotState mRobotState = RobotState::DISABLED;
 
 std::string exec(const char* cmd)
@@ -93,15 +92,16 @@ void sync_fs()
 
 void robot_status_callback (const rio_control_node::Robot_Status &msg)
 {
-	(void) msg;
 	static ros::Time time_in_disabled = ros::Time::now();
 	mRobotState = (RobotState)msg.robot_state;
-	if (mRobotState == RobotState::DISABLED && mPrevRobotState != RobotState::DISABLED)
+	static RobotState mPrevRobotState = RobotState::DISABLED;
+
+	if (mRobotState != RobotState::DISABLED && mPrevRobotState == RobotState::DISABLED)
 	{
 		start_ros_bag();
-		time_in_disabled = ros::Time::now();
 	}
-	else if (mRobotState != RobotState::DISABLED)
+
+	if (mRobotState != RobotState::DISABLED)
 	{
 		time_in_disabled = ros::Time::now();
 	}
@@ -134,8 +134,7 @@ int main(int argc, char **argv)
 	node = &n;
 
 	static ros::Subscriber robot_status_subscriber = node->subscribe("/RobotStatus", 1, robot_status_callback);
-
-	start_ros_bag();	//Initial start
+	stop_ros_bag();
 
 	ros::spin();
 	stop_ros_bag();
