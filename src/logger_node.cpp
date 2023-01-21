@@ -82,7 +82,7 @@ void start_ros_bag()
 		file_idx = 0;
 	}
 
-	system(("rosbag record -tcpnodelay -a -O " + (DEFAULT_BAG_NAME + std::to_string(file_idx + 1) + ".bag") + "  &").c_str());
+	system(("rosbag record --tcpnodelay -a -O " + (DEFAULT_BAG_NAME + std::to_string(file_idx + 1) + ".bag") + "  &").c_str());
 }
 
 void sync_fs()
