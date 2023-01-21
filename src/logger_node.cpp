@@ -91,10 +91,10 @@ void sync_fs()
 	system("sudo sync");
 }
 
-static ros::Time time_in_disabled(0);
 void robot_status_callback (const rio_control_node::Robot_Status &msg)
 {
 	(void) msg;
+	static ros::Time time_in_disabled = ros::Time::now();
 	mRobotState = (RobotState)msg.robot_state;
 	if (mRobotState == RobotState::DISABLED && mPrevRobotState != RobotState::DISABLED)
 	{
@@ -103,7 +103,7 @@ void robot_status_callback (const rio_control_node::Robot_Status &msg)
 	}
 	else if (mRobotState != RobotState::DISABLED)
 	{
-		time_in_disabled = ros::Time(0);
+		time_in_disabled = ros::Time::now();
 	}
 
 	if (time_in_disabled != ros::Time(0) && (ros::Time::now() - time_in_disabled) > ros::Duration(10))
