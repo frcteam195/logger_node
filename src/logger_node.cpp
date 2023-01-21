@@ -13,7 +13,7 @@
 #include <stdexcept>
 #include <array>
 
-#include "rio_control_node/Robot_Status.h"
+#include "ck_ros_base_msgs_node/Robot_Status.h"
 
 ros::NodeHandle* node;
 
@@ -90,7 +90,7 @@ void sync_fs()
 	system("sudo sync");
 }
 
-void robot_status_callback (const rio_control_node::Robot_Status &msg)
+void robot_status_callback (const ck_ros_base_msgs_node::Robot_Status &msg)
 {
 	static ros::Time time_in_disabled = ros::Time::now();
 	mRobotState = (RobotState)msg.robot_state;

@@ -10,7 +10,7 @@ project(${PROJECT_NAME})
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS roscpp std_msgs message_generation rio_control_node ck_utilities_node hmi_agent_node)
+find_package(catkin REQUIRED COMPONENTS roscpp std_msgs message_generation ck_ros_base_msgs_node ck_utilities_node hmi_agent_node)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -103,10 +103,10 @@ find_package(catkin REQUIRED COMPONENTS roscpp std_msgs message_generation rio_c
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES rio_control_node
+#  LIBRARIES ck_ros_base_msgs_node
 #  CATKIN_DEPENDS other_catkin_pkg
 #  DEPENDS system_lib
-  CATKIN_DEPENDS roscpp message_generation message_runtime rio_control_node ck_utilities_node hmi_agent_node
+  CATKIN_DEPENDS roscpp message_generation message_runtime ck_ros_base_msgs_node ck_utilities_node hmi_agent_node
 )
 
 ###########
@@ -125,7 +125,7 @@ message("CATKIN INCLUDES:${catkin_INCLUDE_DIRS}")
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/rio_control_node.cpp
+#   src/${PROJECT_NAME}/ck_ros_base_msgs_node.cpp
 # )
 
 ## Add cmake target dependencies of the library
@@ -136,7 +136,7 @@ message("CATKIN INCLUDES:${catkin_INCLUDE_DIRS}")
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/rio_control_node_node.cpp)
+# add_executable(${PROJECT_NAME}_node src/ck_ros_base_msgs_node_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
