@@ -14,6 +14,7 @@
 #include <array>
 
 #include "ck_ros_base_msgs_node/Robot_Status.h"
+#include "boost/date_time/posix_time/posix_time.hpp"
 
 ros::NodeHandle* node;
 
@@ -45,49 +46,28 @@ std::string exec(const char* cmd)
 
 void stop_ros_bag()
 {
+    ROS_INFO("Stopping the recording");
 	system("pkill -2 rosbag");
 }
 
 void start_ros_bag()
 {
-	const std::string DEFAULT_BAG_NAME = "/mnt/working/robHatesDashes";
+	const std::string DEFAULT_BAG_NAME = "/mnt/working/ros_log_";
 
-	int file_idx = 0;
-	try
-	{
-		std::string cmd_active_bag = exec("ls /mnt/working/*.bag.active | sort -V | tail -n 1 | cut -c 28- | rev | cut -c 12- | rev");
-		std::string cmd_completed_bag = exec("ls /mnt/working/*.bag | sort -V | tail -n 1 | cut -c 28- | rev | cut -c 5- | rev");
+    boost::posix_time::ptime my_posix_time = ros::Time::now().toBoost();
+    std::string date_string = boost::posix_time::to_iso_string(my_posix_time);
 
-		int idx_active = 0;
-		int idx_completed = 0;
-		try {
-			idx_active = std::stoi(cmd_active_bag);
-		}
-		catch (...)
-		{
-			idx_active = 0;
-		}
+    std::stringstream s;
+    s << "rosbag record --tcpnodelay -a -O " << DEFAULT_BAG_NAME << date_string << ".bag &";
 
-		try {
-			idx_completed = std::stoi(cmd_completed_bag);
-		}
-		catch (...)
-		{
-			idx_completed = 0;
-		}
-		file_idx = idx_active > idx_completed ? idx_active : idx_completed;
-	}
-	catch (...)
-	{
-		file_idx = 0;
-	}
+	system(s.str().c_str());
 
-	system(("rosbag record --tcpnodelay -a -O " + (DEFAULT_BAG_NAME + std::to_string(file_idx + 1) + ".bag") + "  &").c_str());
+    ROS_INFO("Starting a recording at: %s", s.str().c_str());
 }
 
 void sync_fs()
 {
-	system("sudo sync");
+	// system("sudo sync");
 }
 
 void robot_status_callback (const ck_ros_base_msgs_node::Robot_Status &msg)
