@@ -18,16 +18,6 @@
 
 ros::NodeHandle* node;
 
-enum RobotState : int
-{
-    DISABLED = 0,
-    TELEOP = 1,
-    AUTONOMOUS = 2,
-    TEST = 3,
-};
-
-static RobotState mRobotState = RobotState::DISABLED;
-
 std::string exec(const char* cmd)
 {
 	std::array<char, 128> buffer;
@@ -55,10 +45,10 @@ void start_ros_bag()
 	const std::string DEFAULT_BAG_NAME = "/mnt/working/ros_log_";
 
     boost::posix_time::ptime my_posix_time = ros::Time::now().toBoost();
-    std::string date_string = boost::posix_time::to_iso_string(my_posix_time);
+    std::string date_string = boost::posix_time::to_iso_extended_string(my_posix_time);
 
     std::stringstream s;
-    s << "rosbag record --tcpnodelay -a -O " << DEFAULT_BAG_NAME << date_string << ".bag &";
+    s << "rosbag record --tcpnodelay -a --split --duration 5m --max-splits 1 --repeat-latched -O " << DEFAULT_BAG_NAME << date_string << ".bag &";
 
 	system(s.str().c_str());
 
@@ -67,23 +57,14 @@ void start_ros_bag()
 
 void sync_fs()
 {
-	// system("sudo sync");
+	system("sudo sync");
 }
 
 void robot_status_callback (const ck_ros_base_msgs_node::Robot_Status &msg)
 {
-	static ros::Time time_in_disabled = ros::Time::now();
-	mRobotState = (RobotState)msg.robot_state;
-	static RobotState mPrevRobotState = RobotState::DISABLED;
-	static bool started = false;
+	static ros::Time time_in_disabled = ros::Time(0);
 
-	if (mRobotState != RobotState::DISABLED && mPrevRobotState == RobotState::DISABLED && !started)
-	{
-		started = true;
-		start_ros_bag();
-	}
-
-	if (mRobotState != RobotState::DISABLED)
+	if (msg.robot_state != ck_ros_base_msgs_node::Robot_Status::DISABLED)
 	{
 		time_in_disabled = ros::Time::now();
 	}
@@ -91,11 +72,10 @@ void robot_status_callback (const ck_ros_base_msgs_node::Robot_Status &msg)
 	if (time_in_disabled != ros::Time(0) && (ros::Time::now() - time_in_disabled) > ros::Duration(10))
 	{
 		stop_ros_bag();
-		started = false;
 		sync_fs();
+        start_ros_bag();
 		time_in_disabled = ros::Time(0);
 	}
-	mPrevRobotState = mRobotState;
 }
 
 int main(int argc, char **argv)
@@ -117,8 +97,8 @@ int main(int argc, char **argv)
 	node = &n;
 
 	static ros::Subscriber robot_status_subscriber = node->subscribe("/RobotStatus", 1, robot_status_callback);
-	stop_ros_bag();
 
+    start_ros_bag();
 	ros::spin();
 	stop_ros_bag();
 	sync_fs();
