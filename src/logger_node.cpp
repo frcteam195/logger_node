@@ -48,7 +48,7 @@ void start_ros_bag()
     std::string date_string = boost::posix_time::to_iso_extended_string(my_posix_time);
 
     std::stringstream s;
-    s << "rosbag record --tcpnodelay -a --split --duration 5m --max-splits 1 --repeat-latched -O " << DEFAULT_BAG_NAME << date_string << ".bag &";
+    s << "rosbag record --tcpnodelay -a -x '/MotorControl$|/MotorConfiguration$' --split --duration 5m --max-splits 1 --repeat-latched -O " << DEFAULT_BAG_NAME << date_string << ".bag &";
 
 	system(s.str().c_str());
 
